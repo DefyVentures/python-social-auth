@@ -5,27 +5,29 @@ import socket
 from social.backends import oauth
 
 BASE_URL = 'http://defybox.org'
+if socket.gethostname() == 'precise64':
+    BASE_URL = 'http://reidlcms.ngrok.io'
 
-# This is a big hack.  Need to find a way to use django config if possible.
-if socket.gethostname() == 'precise64': # edX devstack
-    pass
 
 class DefyVenturesOAuth2Backend(oauth.BaseOAuth2):
     """Defy Ventures OAuth authentication backend"""
 
     name = 'defyventures'
+
     AUTHORIZATION_URL = BASE_URL + '/oauth2/authorize/'
     ACCESS_TOKEN_URL  = BASE_URL + '/oauth2/token/'
     USER_DATA_URL     = BASE_URL + '/api/user'
+
+    SETTING_PREFIX = 'SOCIAL_AUTH_DEFYVENTURES_OAUTH2_'
     ACCESS_TOKEN_METHOD = 'POST'
     EXTRA_DATA = [
         ('id', 'id'),
         ('expires', 'expires')
     ]
 
-    def setting(self, name, default=None):
+    def defy_setting(self, name, default=None):
         """Return setting value from strategy"""
-        name = 'SOCIAL_AUTH_DEFYVENTURES_OAUTH2_' + name
+        name = self.SETTING_PREFIX + name
         return self.strategy.setting(name, default=default, backend=self)
 
     def get_user_details(self, response):
@@ -49,7 +51,7 @@ class DefyVenturesOAuth2Backend(oauth.BaseOAuth2):
         return self.get_json(self.USER_DATA_URL, params={'token': access_token})
 
     def auth_params(self, state=None):
-        client_id = self.setting('KEY')
+        client_id = self.defy_setting('KEY')
         params = {
             'client_id': client_id,
             'redirect_uri': self.get_redirect_uri(state),
@@ -66,7 +68,7 @@ class DefyVenturesOAuth2Backend(oauth.BaseOAuth2):
         return self.redirect_uri
 
     def auth_headers(self):
-        client_auth = b64encode(self.setting('KEY') + ':' + self.setting('SECRET'))
+        client_auth = b64encode(self.defy_setting('KEY') + ':' + self.defy_setting('SECRET'))
         return {'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
                 'Authorization': 'Basic {0}'.format(client_auth)}
