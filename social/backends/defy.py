@@ -6,10 +6,9 @@ from social.backends import oauth
 
 # TODO: Find a solution for getting this from environment vars or django settings.
 BASE_URL = {
-    'production'  : 'http://learn.defyventures.org',
     'ip-10-0-0-61': 'http://learn.defybox.org',
     'precise64'   : 'http://reidlcms.ngrok.io',
-}.get(socket.gethostname(), 'production')
+}.get(socket.gethostname(), 'http://learn.defyventures.org')
 
 class DefyVenturesOAuth2Backend(oauth.BaseOAuth2):
     """Defy Ventures OAuth authentication backend"""
