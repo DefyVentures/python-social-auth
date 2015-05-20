@@ -4,10 +4,12 @@ import socket
 
 from social.backends import oauth
 
-BASE_URL = 'http://defybox.org'
-if socket.gethostname() == 'precise64':
-    BASE_URL = 'http://reidlcms.ngrok.io'
-
+# TODO: Find a solution for getting this from environment vars or django settings.
+BASE_URL = {
+    'production'  : 'http://learn.defyventures.org',
+    'ip-10-0-0-61': 'http://learn.defybox.org',
+    'precise64'   : 'http://reidlcms.ngrok.io',
+}.get(socket.gethostname(), 'production')
 
 class DefyVenturesOAuth2Backend(oauth.BaseOAuth2):
     """Defy Ventures OAuth authentication backend"""
