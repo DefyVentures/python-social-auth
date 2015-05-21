@@ -31,6 +31,14 @@ def social_user(backend, uid, user=None, *args, **kwargs):
 
 
 def associate_user(backend, uid, user=None, social=None, *args, **kwargs):
+
+    # `uid` was `None` every time which was causing this to fail so I'm getting
+    # it from the `user` object.  This is a django-only fix that could likely
+    # be fixed better somehow in the `defyventures` backend implementation.
+    # @reidransom
+    if uid is None:
+        uid = getattr(user, 'id')
+
     if user and not social:
         try:
             social = backend.strategy.storage.user.create_social_auth(
