@@ -4,20 +4,15 @@ import socket
 
 from social.backends import oauth
 
-# TODO: Find a solution for getting this from environment vars or django settings.
-BASE_URL = {
-    'ip-10-0-0-61': 'http://learn.defybox.org',
-    'precise64'   : 'http://reidlcms.ngrok.io',
-}.get(socket.gethostname(), 'http://learn.defyventures.org')
 
 class DefyVenturesOAuth2Backend(oauth.BaseOAuth2):
     """Defy Ventures OAuth authentication backend"""
 
     name = 'defyventures'
 
-    AUTHORIZATION_URL = BASE_URL + '/oauth2/authorize/'
-    ACCESS_TOKEN_URL  = BASE_URL + '/oauth2/token/'
-    USER_DATA_URL     = BASE_URL + '/api/user'
+    AUTHORIZATION_PATH = '/oauth2/authorize/'
+    ACCESS_TOKEN_PATH  = '/oauth2/token/'
+    USER_DATA_PATH     = '/api/user'
 
     SETTING_PREFIX = 'SOCIAL_AUTH_DEFYVENTURES_OAUTH2_'
     ACCESS_TOKEN_METHOD = 'POST'
@@ -30,6 +25,15 @@ class DefyVenturesOAuth2Backend(oauth.BaseOAuth2):
         """Return setting value from strategy"""
         name = self.SETTING_PREFIX + name
         return self.strategy.setting(name, default=default, backend=self)
+
+    def get_base_url(self):
+        return self.defy_setting('BASE_URL', 'http://learn.defyventures.org')
+
+    def authorization_url(self):
+        return self.get_base_url() + self.AUTHORIZATION_PATH
+
+    def access_token_url(self):
+        return self.get_base_url() + self.ACCESS_TOKEN_PATH
 
     def get_user_details(self, response):
         """Return user details from Defy Ventures account"""
@@ -49,7 +53,8 @@ class DefyVenturesOAuth2Backend(oauth.BaseOAuth2):
 
     def user_data(self, access_token, *args, **kwargs):
         """Loads user data from service"""
-        return self.get_json(self.USER_DATA_URL, params={'token': access_token})
+        url = self.get_base_url() + self.USER_DATA_PATH
+        return self.get_json(url, params={'token': access_token})
 
     def auth_params(self, state=None):
         client_id = self.defy_setting('KEY')
